@@ -121,12 +121,86 @@ impl Prover {
 
 }
 
+// Compute deg_j(g)
+pub fn max_degrees(g: &MVPoly) -> Vec<usize> {
+    let mut lookup: Vec<usize> = vec![0; g.num_vars()];
 
-pub fn verify(g: &MVPoly, c_1: Fq) -> Fq{
-    let mut p = Prover::new(g);
-    let mut g1 = p.obtain_unipoly(None);
-    let mut expected_c = g1.evaluate(&Fq::from(0)) + g1.evaluate(&Fq::from(1));
-    expected_c
+    for (_, term) in g.terms().iter() {
+        for (var, power) in term.iter() {
+            lookup[*var] = lookup[*var].max(*power);
+        }
+    }
+
+    lookup
+}
+
+// Get a random value in the field Fq
+pub fn get_rand() -> Option<Fq> {
+	let mut rng = rand::thread_rng();
+	let r: Fq = rng.gen();
+	Some(r)
+}
+
+
+// Verify steps 
+pub fn verify(g: &MVPoly, c_1: Fq) -> bool{
+
+    let mut prover = Prover::new(g);
+
+    // First round
+    let g_1 = prover.obtain_unipoly(None);
+    let g1_sum = g_1.evaluate(&Fq::from(0)) + g_1.evaluate(&Fq::from(1));
+    let lookup_degree = max_degrees(&g);
+
+    println!("Round {}", 1); 
+    println!("C_1 = {}", c_1); 
+    println!("g_1(0) + g(1) = {}", g1_sum);
+    
+    assert_eq!(c_1, g1_sum);
+    assert!(g_1.degree() <= lookup_degree[0]);
+    
+    println!(" ");
+
+    let v = prover.g.num_vars(); 
+
+    let mut g_jm1 = g_1;
+
+    // Round 2 to v-1
+    for j in 1..v{
+        println!("Round {}", j + 1); 
+        
+        let r = get_rand();
+        let g_j = prover.obtain_unipoly(r);
+        
+        let gj_sum = g_j.evaluate(&Fq::from(0)) + g_j.evaluate(&Fq::from(1));
+        let g_jm1evalr = g_jm1.evaluate(&r.unwrap());
+        
+        println!("r_{} = {}", j, &r.unwrap()); 
+        println!("g_{}(r_{}) = {}", j, j, g_jm1evalr); 
+        println!("g_{}(0) + g_{}(1) = {}", j + 1, j + 1, gj_sum); 
+
+        assert_eq!(gj_sum, g_jm1evalr);
+        assert!(g_j.degree() <= lookup_degree[j]);
+
+        println!(" ");
+        
+        g_jm1 = g_j; 
+    }
+
+    let r = get_rand();
+    // g_v(r_v) here
+    let g_jm1evalr = g_jm1.evaluate(&r.unwrap());
+
+    // g(r_1, ..., r_v) here 
+    prover.r_vec.push(r.unwrap());
+    for r in prover.r_vec{
+        println!("{}", r)
+    }
+	let g_r1rv = prover.g.evaluate(&vec![Fq::from(0), Fq::from(1), Fq::from(2)]);
+	//assert_eq!(expected_c, new_c);
+
+
+    true
 }
 
 

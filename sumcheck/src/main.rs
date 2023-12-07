@@ -17,7 +17,7 @@ fn main() {
     ]);
     print_mvpoly(&g_example);
 
-    let mut result = verify(&g_example, Fq::from(12));
+    let result = verify(&g_example, Fq::from(12));
     print!("{}", result); 
 
 
