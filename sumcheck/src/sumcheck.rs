@@ -187,17 +187,21 @@ pub fn verify(g: &MVPoly, c_1: Fq) -> bool{
         g_jm1 = g_j; 
     }
 
+    println!("Round {}", v + 1); 
     let r = get_rand();
     // g_v(r_v) here
     let g_jm1evalr = g_jm1.evaluate(&r.unwrap());
 
     // g(r_1, ..., r_v) here 
     prover.r_vec.push(r.unwrap());
-    for r in prover.r_vec{
-        println!("{}", r)
-    }
-	let g_r1rv = prover.g.evaluate(&vec![Fq::from(0), Fq::from(1), Fq::from(2)]);
-	//assert_eq!(expected_c, new_c);
+	let g_r1rv = prover.g.evaluate(&prover.r_vec);
+
+    println!("r_{} = {}", v, &r.unwrap()); 
+    println!("g_{}(r_{}) = {}", v, v, g_jm1evalr); 
+    println!("g(r_1,...,r_{}) = {}", v, g_r1rv); 
+
+
+	assert_eq!(g_jm1evalr, g_r1rv);
 
 
     true
