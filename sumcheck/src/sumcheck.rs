@@ -9,12 +9,14 @@ use ark_poly::polynomial::univariate::SparsePolynomial as UniSparsePolynomial;
 // Common interfaces for multivariate and univariate polynomial
 use ark_poly::polynomial::{DenseMVPolynomial, DenseUVPolynomial, Polynomial};
 
-use ark_std::cfg_into_iter;
 use rand::Rng;
 
 // rename for Uni and Multi polynomial for convenience 
 pub type MVPoly = SparsePolynomial<Fq, SparseTerm>;
 pub type UVPoly = UniSparsePolynomial<Fq>;
+
+use std::collections::HashMap;
+use std::str::Chars;
 
 
 // Converts i into an index in {0,1}^v
@@ -208,16 +210,20 @@ pub fn verify(g: &MVPoly, c_1: Fq) -> bool{
 }
 
 
+// A parser for polynomial here
+// Function to parse a polynomial from a string
+// Function to parse a polynomial from a string
 
-// Utility Here 
+
+
 // Print multi-variate polynomial 
 pub fn print_mvpoly(poly: &MVPoly) {
     // Iterate through the terms of the polynomial
-    print!("Polynomial to be verified g =");
+    print!("g = ");
     for (i,(coeff, term)) in poly.terms().iter().enumerate() {
         print_term(coeff, term);
         if i < poly.terms().len()-1{
-            print!(" +");
+            print!(" + ");
         }
     }
     println!(); // Print a newline at the end
@@ -230,16 +236,19 @@ pub fn print_term(coeff: &Fq, term: &SparseTerm) {
     } 
     // Non-constant term
     else {
+        if *coeff != Fq::from(1){
+            print!("{} * ", coeff);
+        }
         for (i, (variable, exponent)) in term.iter().enumerate() {
             if *exponent == 1 {
-                print!(" X_{}", variable);
+                print!("X_{}", variable + 1);
             } else {
-                print!(" X_{}^{}", variable, exponent);
+                print!("X_{}^{}", variable + 1, exponent);
             }
 
              // Print '*' only if there are more terms to come
              if i < term.len() - 1 {
-                print!(" *");
+                print!(" * ");
             }
         }
     }
