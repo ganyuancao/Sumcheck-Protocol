@@ -19,12 +19,17 @@ use std::collections::HashMap;
 use std::str::Chars;
 
 
-// Converts i into an index in {0,1}^v
+// Converts i into an vector in {0,1}^v
 pub fn n_to_vec(i: usize, n: usize) -> Vec<Fq> {
-	format!("{:0>width$}", format!("{:b}", i), width = n)
-		.chars()
-		.map(|x| if x == '1' { 1.into() } else { 0.into() })
-		.collect()
+    let binary_str = format!("{:0>width$}", format!("{:b}", i), width = n);
+
+    binary_str.chars().map(|x| 
+        if x == '1' { 
+            Fq::from(1) 
+        } 
+        else { 
+            Fq::from(0) 
+        }).collect()
 }
 
 
@@ -124,16 +129,16 @@ impl Prover {
 }
 
 // Compute deg_j(g)
-pub fn max_degrees(g: &MVPoly) -> Vec<usize> {
-    let mut lookup: Vec<usize> = vec![0; g.num_vars()];
+pub fn degj(g: &MVPoly) -> Vec<usize> {
+    let mut deg: Vec<usize> = vec![0; g.num_vars()];
 
     for (_, term) in g.terms().iter() {
-        for (var, power) in term.iter() {
-            lookup[*var] = lookup[*var].max(*power);
+        for (var, exp) in term.iter() {
+            deg[*var] = deg[*var].max(*exp);
         }
     }
 
-    lookup
+    deg
 }
 
 // Get a random value in the field Fq
@@ -147,19 +152,22 @@ pub fn get_rand() -> Option<Fq> {
 // Verify steps 
 pub fn verify(g: &MVPoly, c_1: Fq) -> bool{
 
+    println!("\n --- Running Sumcheck Protocol --- \n");
+
     let mut prover = Prover::new(g);
 
     // First round
     let g_1 = prover.obtain_unipoly(None);
     let g1_sum = g_1.evaluate(&Fq::from(0)) + g_1.evaluate(&Fq::from(1));
-    let lookup_degree = max_degrees(&g);
+    let deg_xj = degj(&g);
 
     println!("Round {}", 1); 
     println!("C_1 = {}", c_1); 
     println!("g_1(0) + g(1) = {}", g1_sum);
     
-    assert_eq!(c_1, g1_sum);
-    assert!(g_1.degree() <= lookup_degree[0]);
+    if c_1 != g1_sum || g_1.degree() > deg_xj[0]{
+        return false;
+    }
     
     println!(" ");
 
@@ -181,8 +189,9 @@ pub fn verify(g: &MVPoly, c_1: Fq) -> bool{
         println!("g_{}(r_{}) = {}", j, j, g_jm1evalr); 
         println!("g_{}(0) + g_{}(1) = {}", j + 1, j + 1, gj_sum); 
 
-        assert_eq!(gj_sum, g_jm1evalr);
-        assert!(g_j.degree() <= lookup_degree[j]);
+        if gj_sum != g_jm1evalr || g_j.degree() > deg_xj[j]{
+            return false;
+        }
 
         println!(" ");
         
@@ -202,18 +211,12 @@ pub fn verify(g: &MVPoly, c_1: Fq) -> bool{
     println!("g_{}(r_{}) = {}", v, v, g_jm1evalr); 
     println!("g(r_1,...,r_{}) = {}", v, g_r1rv); 
 
-
-	assert_eq!(g_jm1evalr, g_r1rv);
-
+    if g_jm1evalr != g_r1rv{
+        return false;
+    }
 
     true
 }
-
-
-// A parser for polynomial here
-// Function to parse a polynomial from a string
-// Function to parse a polynomial from a string
-
 
 
 // Print multi-variate polynomial 

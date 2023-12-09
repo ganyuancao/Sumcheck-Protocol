@@ -29,7 +29,7 @@ fn main() {
     print_mvpoly(&g_example);
 
     let mut result = verify(&g_example, Fq::from(12));
-    println!("---------------------------");
+    println!("\n --- Sumcheck Protocl Finished ---");
     println!("=> The result is {}", result); 
     println!(" ");
 
@@ -40,10 +40,9 @@ fn main() {
     let mut sum_input = String::new();
     io::stdin().read_line(&mut sum_input).expect("Failed to read line");
     let claimed_sum: u32 = sum_input.trim().parse().expect("Invalid input, please enter a valid u32");
-    println!("\n Running Sumcheck Protocol \n");
 
     result = verify(&g, Fq::from(claimed_sum));
-    println!("---------------------------");
+    println!("\n --- Sumcheck Protocl Finished ---");
     println!("=> The result is {}", result); 
     println!(" ");
 }
@@ -60,7 +59,10 @@ fn parse_poly() -> MVPoly {
     let num_var: usize = vlength.trim().parse().expect("Invalid input, please enter a valid u32");
 
     
-    println!("\nInput your polynomial here: ");
+    println!("\nInput your polynomial term by term here following the format ");
+    println!("coefficient, [(variable,exponent),(variable,exponent),...]");
+    println!("e.g. 2, [(0,1),(1,3)] means 2 * X_1 * X_2^3");
+    println!("End by inputing an empty line.");
 
     let mut input = String::new();
     let mut coef_term: Vec<(Fq, SparseTerm)> = Vec::new();
