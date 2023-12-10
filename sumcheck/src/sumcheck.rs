@@ -246,7 +246,7 @@ pub fn print_term(coeff: &Fq, term: &SparseTerm) {
             if *exponent == 1 {
                 print!("X_{}", variable + 1);
             } else {
-                print!("X_{}^{}", variable + 1, exponent);
+                print!("X_{} ^ {}", variable + 1, exponent);
             }
 
              // Print '*' only if there are more terms to come
