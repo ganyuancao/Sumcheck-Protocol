@@ -21,7 +21,10 @@ fn parse_polynomial() -> MVPoly {
     io::stdin().read_line(&mut vlength).expect("Failed to read line");
     let num_var: usize = vlength.trim().parse().expect("Invalid input, please enter a valid u32");
 
-    println!("\nInput your polynomial with X_i as variables:");
+    println!("\nInput your polynomial following the format");
+    println!("coefficient * X_i ^ exponent e.g. 2 * X_1 ^ 3");
+    println!("Omit the coefficient/exponent if they are 1");
+    println!("Input your polynomial now:");
 
     let mut input = String::new();
     let mut coef_term: Vec<(Fq, SparseTerm)> = Vec::new();

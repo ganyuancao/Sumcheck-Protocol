@@ -15,8 +15,6 @@ use rand::Rng;
 pub type MVPoly = SparsePolynomial<Fq, SparseTerm>;
 pub type UVPoly = UniSparsePolynomial<Fq>;
 
-use std::collections::HashMap;
-use std::str::Chars;
 
 
 // Converts i into an vector in {0,1}^v
@@ -51,9 +49,9 @@ impl Prover {
 		}
 	}
 
-    // generate a univarite polynomial 
+    // generate a univarite polynomial w.r.t X_j
     // g_j(X_j) = g(r_1, r_2, ..., X_j, x_{j+1}, ..., x_v) 
-    // with x_{j+1}, ..., x_v in {0,1}
+    // with r_1,...,r_{j-1} sent from the verifier and x_{j+1}, ..., x_v in {0,1}
     pub fn obtain_unipoly(&mut self, r: Option<Fq>) -> UVPoly {
         if let Some(rr) = r {
             self.r_vec.push(rr);
@@ -62,7 +60,7 @@ impl Prover {
         let v = self.g.num_vars() - self.r_vec.len();
         let mut sum_poly = UVPoly::from_coefficients_vec(vec![(0, Fq::from(0))]);
     
-        // Evaluate x_{j+1} to x_v
+        // Evaluate x_{j+1} to x_v over the boolean hypercube
         for n in 0..(2u32.pow(v as u32 - 1)) {
             sum_poly = sum_poly + self.eval_gj(n_to_vec(n as usize, v));
         }
@@ -70,7 +68,7 @@ impl Prover {
         sum_poly
     }
 
-    // Evaluate sum on x_{j+1}, ..., x_v in {0,1}
+    // Evaluate one value of x_{j+1}, ..., x_v by representing them as a vector from {0,1}
     pub fn eval_gj(&self, points: Vec<Fq>) -> UVPoly {
 
          // Initialize an empty polynomial as the sum.
